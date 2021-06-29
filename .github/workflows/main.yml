@@ -1,4 +1,4 @@
-name: main
+name: ci
 
 on:
   push:
@@ -11,6 +11,9 @@ on:
 jobs:
   buildx:
     runs-on: ubuntu-latest
+
+    env:
+      ANSIBLE_VERSION: 4.2.0
 
     steps:
       - name: Checkout
@@ -33,4 +36,21 @@ jobs:
 
       - name: Build Image
         run: |
-          docker buildx build --push --platform linux/amd64,linux/arm/v7 --progress=plain -t asuprun/ansible:latest .
+          docker buildx build \
+            --platform linux/amd64,linux/arm/v7 \
+            --build-arg ANSIBLE_VERSION=${ANSIBLE_VERSION} \
+            --progress=plain \
+            -t asuprun/ansible:${ANSIBLE_VERSION} \
+            -t asuprun/ansible:latest \
+            .
+
+      - name: Push Image
+        if: ${{ github.ref == 'refs/heads/main' }}
+        run: |
+          docker buildx build \
+            --platform linux/amd64,linux/arm/v7 \
+            --progress=plain \
+            --push \
+            -t asuprun/ansible:${ANSIBLE_VERSION} \
+            -t asuprun/ansible:latest \
+            .

@@ -15,9 +15,12 @@ RUN apt update \
 
 FROM python:3.9
 
+ARG ANSIBLE_VERSION=4.2.0
+ARG ANSIBLE_LINT_VERSION=5.0.12
+
 COPY --from=cryptography-builder /tmp/wheelshome /tmp/wheelshome
 
 RUN pip install --no-cache-dir --find-links=/tmp/wheelshome \
-        ansible \
-        ansible-lint \
+        ansible==${ANSIBLE_VERSION} \
+        ansible-lint==${ANSIBLE_LINT_VERSION} \
     && rm -rf /tmp/*
