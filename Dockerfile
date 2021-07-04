@@ -1,4 +1,4 @@
-FROM python:3.9 AS cryptography-builder
+FROM python:3.8-slim AS cryptography-builder
 
 # CRYPTOGRAPHY_DONT_BUILD_RUST is deprecated.
 # This is a workaround for the known buildx issue:
@@ -10,17 +10,17 @@ RUN apt update \
         gcc \
         libffi-dev \
         cargo \
+        libssl-dev \
     && pip wheel --wheel-dir=/tmp/wheelshome \
         cryptography
 
-FROM python:3.9
+FROM python:3.8-slim
 
 ARG ANSIBLE_VERSION=4.2.0
-ARG ANSIBLE_LINT_VERSION=5.0.12
 
 COPY --from=cryptography-builder /tmp/wheelshome /tmp/wheelshome
+COPY requirements.txt /requirements.txt
 
-RUN pip install --no-cache-dir --find-links=/tmp/wheelshome \
+RUN pip install --no-cache-dir --find-links=/tmp/wheelshome -r /requirements.txt \
         ansible==${ANSIBLE_VERSION} \
-        ansible-lint==${ANSIBLE_LINT_VERSION} \
     && rm -rf /tmp/*
