@@ -12,9 +12,6 @@ jobs:
   buildx:
     runs-on: ubuntu-latest
 
-    env:
-      ANSIBLE_VERSION: 4.2.0
-
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -33,6 +30,9 @@ jobs:
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Export Image Version
+        run: echo "ANSIBLE_VERSION=$(cat requirements.txt | grep -iE "^ansible\s*==" | awk '{split($0,a,"=="); print a[2]}')" >> $GITHUB_ENV
 
       - name: Build Image
         run: |

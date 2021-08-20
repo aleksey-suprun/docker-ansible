@@ -16,11 +16,8 @@ RUN apt update \
 
 FROM python:3.8-slim
 
-ARG ANSIBLE_VERSION=4.2.0
-
 COPY --from=cryptography-builder /tmp/wheelshome /tmp/wheelshome
 COPY requirements.txt /requirements.txt
 
 RUN pip install --no-cache-dir --find-links=/tmp/wheelshome -r /requirements.txt \
-        ansible==${ANSIBLE_VERSION} \
     && rm -rf /tmp/*
