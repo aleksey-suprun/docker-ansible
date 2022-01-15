@@ -1,9 +1,4 @@
-FROM python:3.8-slim AS cryptography-builder
-
-# CRYPTOGRAPHY_DONT_BUILD_RUST is deprecated.
-# This is a workaround for the known buildx issue:
-# https://github.com/docker/buildx/issues/395
-ENV CRYPTOGRAPHY_DONT_BUILD_RUST=1
+FROM python:3.9-slim AS wheels-builder
 
 RUN apt update \
     && apt install -y --no-install-recommends \
@@ -11,13 +6,22 @@ RUN apt update \
         libffi-dev \
         cargo \
         libssl-dev \
+        libpython3-dev \
+        build-essential \
+    && pip install -U pip \
     && pip wheel --wheel-dir=/tmp/wheelshome \
-        cryptography
+        cryptography \
+        bcrypt \
+        pynacl
 
-FROM python:3.8-slim
+FROM python:3.9-slim
 
-COPY --from=cryptography-builder /tmp/wheelshome /tmp/wheelshome
+COPY --from=wheels-builder /tmp/wheelshome /tmp/wheelshome
 COPY requirements.txt /requirements.txt
 
-RUN pip install --no-cache-dir --find-links=/tmp/wheelshome -r /requirements.txt \
+RUN pip install --no-cache-dir -U pip \
+    && pip install \
+        --no-cache-dir \
+        --find-links=/tmp/wheelshome \
+        -r /requirements.txt \
     && rm -rf /tmp/*
